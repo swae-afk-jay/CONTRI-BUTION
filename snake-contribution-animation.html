@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixel Snake Contribution Animation</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+      color: #eee;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .frame {
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      border: 4px solid #39ff14;
+      background: #050505;
+      box-shadow: 0 0 30px rgba(57, 255, 20, 0.3);
+      border-radius: 16px;
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: 1.2rem;
+      text-align: center;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    canvas {
+      image-rendering: pixelated;
+      border: 3px solid #39ff14;
+      background: #090909;
+      width: 480px;
+      height: 480px;
+      border-radius: 12px;
+    }
+
+    p {
+      margin: 14px 0 0;
+      text-align: center;
+      max-width: 360px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <h1>Pixel Snake Eating Contribution Squares</h1>
+    <canvas id="game" width="16" height="16"></canvas>
+    <p>Watch the pixel snake navigate the grid and gobble green contribution squares one by one.</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const gridSize = 16;
+    const cell = 16;
+    const frame = 100;
+
+    const snake = [{ x: 2, y: 8 }, { x: 1, y: 8 }, { x: 0, y: 8 }];
+    let direction = { x: 1, y: 0 };
+    let food = { x: 10, y: 8 };
+    let score = 0;
+    let moveQueue = [];
+
+    function randomPosition() {
+      return {
+        x: Math.floor(Math.random() * gridSize),
+        y: Math.floor(Math.random() * gridSize),
+      };
+    }
+
+    function placeFood() {
+      let position = randomPosition();
+      while (snake.some(segment => segment.x === position.x && segment.y === position.y)) {
+        position = randomPosition();
+      }
+      food = position;
+    }
+
+    function drawPixel(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, 1, 1);
+    }
+
+    function drawGrid() {
+      ctx.fillStyle = '#090909';
+      ctx.fillRect(0, 0, gridSize, gridSize);
+    }
+
+    function draw() {
+      drawGrid();
+      drawPixel(food.x, food.y, '#33cc33');
+      for (let i = 0; i < snake.length; i++) {
+        const segment = snake[i];
+        drawPixel(segment.x, segment.y, i === 0 ? '#b6ff7a' : '#6aec3d');
+      }
+      if (score > 0) {
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 2px monospace';
+        ctx.fillText(score.toString(), 1, 15);
+      }
+    }
+
+    function update() {
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+      if (head.x < 0) head.x = gridSize - 1;
+      if (head.x >= gridSize) head.x = 0;
+      if (head.y < 0) head.y = gridSize - 1;
+      if (head.y >= gridSize) head.y = 0;
+
+      snake.unshift(head);
+      if (head.x === food.x && head.y === food.y) {
+        score += 1;
+        placeFood();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function changeDirection() {
+      const possible = [
+        { x: 1, y: 0 },
+        { x: -1, y: 0 },
+        { x: 0, y: 1 },
+        { x: 0, y: -1 },
+      ];
+      const next = possible[Math.floor(Math.random() * possible.length)];
+      const isOpposite = next.x === -direction.x && next.y === -direction.y;
+      if (!isOpposite) {
+        direction = next;
+      }
+    }
+
+    function loop() {
+      if (Math.random() < 0.3) {
+        changeDirection();
+      }
+      update();
+      draw();
+    }
+
+    setInterval(loop, frame);
+    draw();
+  </script>
+</body>
+</html>
